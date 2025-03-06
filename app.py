@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import langgraph
-# from langchain.chat_models import ChatOpenAI
 from langchain_groq import ChatGroq
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, END
 from langchain.schema import SystemMessage
 
 app = FastAPI()
@@ -13,8 +12,6 @@ class AgentState:
         self.user_input = user_input
         self.response = None
 
-# Inicializar el modelo de lenguaje
-# llm = ChatOpenAI(model="gpt-4", temperature=0.7)
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
 
 # Función para hablar sobre la pastelería
@@ -50,9 +47,10 @@ workflow = StateGraph(AgentState)
 workflow.add_node("clasificar", clasificar_pregunta)
 workflow.add_node("pasteleria", info_pasteleria)
 workflow.add_node("productos", info_productos)
+
 workflow.set_entry_point(clasificar_pregunta)
-workflow.add_edge("pasteleria", "end")
-workflow.add_edge("productos", "end")
+workflow.add_edge("pasteleria", END)
+workflow.add_edge("productos", END)
 
 # Compilar el gráfico
 graph = workflow.compile()
