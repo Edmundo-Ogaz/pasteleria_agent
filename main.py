@@ -2,7 +2,8 @@ from typing import Annotated
 
 from typing_extensions import TypedDict
 
-from langchain_core.tools import tool
+from langchain_core.tools import tool, InjectedToolCallId
+from langchain_core.messages import ToolMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -15,25 +16,58 @@ class State(TypedDict):
     # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwriting them)
     messages: Annotated[list, add_messages]
+    name: str
+    birthday: str
 
 
 graph_builder = StateGraph(State)
 
 @tool
-def human_assistance(query: str) -> str:
+def human_assistance(
+    name: str, birthday: str, tool_call_id: Annotated[str, InjectedToolCallId]
+) -> str:
     """Request assistance from a human."""
-    human_response = interrupt({"query": query})
-    return human_response["data"]
+    human_response = interrupt(
+        {
+            "question": "Is this correct?",
+            "name": name,
+            "birthday": birthday,
+        },
+    )
+    # If the information is correct, update the state as-is.
+    if human_response.get("correct", "").lower().startswith("y"):
+        verified_name = name
+        verified_birthday = birthday
+        response = "Correct"
+    # Otherwise, receive information from the human reviewer.
+    else:
+        verified_name = human_response.get("name", name)
+        verified_birthday = human_response.get("birthday", birthday)
+        response = f"Made a correction: {human_response}"
+
+    # This time we explicitly update the state with a ToolMessage inside
+    # the tool.
+    state_update = {
+        "name": verified_name,
+        "birthday": verified_birthday,
+        "messages": [ToolMessage(response, tool_call_id=tool_call_id)],
+    }
+    # We return a Command object in the tool to update our state.
+    return Command(update=state_update)
 
 def get_info_about_the_bakery() -> str:
     """function to get info about the bakery for example: history, address, fone"""
-    return "pastelería la palmera"
+    return "La pastelería la Lalmera fue creada en 1998"
 
 def get_products_by_ingredient(ingredient: str) -> str:
     """function to get the products by a ingredient"""
     return "piña"
 
-tools = [get_info_about_the_bakery, get_products_by_ingredient, human_assistance]
+def get_release_of_the_bakery() -> str:
+    """function to get release of the bakery"""
+    return "La pastelería la Lalmera fue creada en 1998"
+
+tools = [get_release_of_the_bakery, human_assistance]
 
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
 llm_with_tools = llm.bind_tools(tools)
@@ -43,7 +77,10 @@ def chatbot(state: State):
     # Because we will be interrupting during tool execution,
     # we disable parallel tool calling to avoid repeating any
     # tool invocations when we resume.
-    assert len(message.tool_calls) <= 1
+    print(message)
+    # assert len(message.tool_calls) <= 1
+    if len(message.tool_calls) > 1:
+        del message.tool_calls[1]
     return {"messages": [message]}
 
 
@@ -71,31 +108,10 @@ memory = MemorySaver()
 
 graph = graph_builder.compile(checkpointer=memory)
 
-# def stream_graph_updates(user_input: str):
-#     config = {"configurable": {"thread_id": "1"}}
-#     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}, config):
-#         for value in event.values():
-#             print("Assistant:", value["messages"][-1].content)
-
-#     snapshot = graph.get_state(config)
-#     print(snapshot)
-
-# while True:
-#     try:
-#         user_input = input("User: ")
-#         if user_input.lower() in ["quit", "exit", "q"]:
-#             print("Goodbye!")
-#             break
-
-#         stream_graph_updates(user_input)
-#     except:
-#         # fallback if input() is not available
-#         user_input = "What do you know about LangGraph?"
-#         print("User: " + user_input)
-#         stream_graph_updates(user_input)
-#         break
-
-user_input = "I need someone expert guidance. Could you request assistance for me?"
+user_input = (
+    "Can you look up when the bakery was released? "
+    "When you have the answer, use the human_assistance tool for review."
+)
 config = {"configurable": {"thread_id": "1"}}
 
 events = graph.stream(
@@ -107,16 +123,27 @@ for event in events:
     if "messages" in event:
         event["messages"][-1].pretty_print()
 
-snapshot = graph.get_state(config)
-print(snapshot.next)
 
-human_response = (
-    "We, the experts are here to help!"
+human_command = Command(
+    resume={
+        "name": "pastelería la palmera",
+        "birthday": "Jan 17, 2024",
+    },
 )
-
-human_command = Command(resume={"data": human_response})
 
 events = graph.stream(human_command, config, stream_mode="values")
 for event in events:
     if "messages" in event:
         event["messages"][-1].pretty_print()
+
+
+snapshot = graph.get_state(config)
+# print(snapshot)
+print({k: v for k, v in snapshot.values.items() if k in ("name", "birthday")})
+
+
+graph.update_state(config, {"name": "LangGraph (library)"})
+
+snapshot = graph.get_state(config)
+
+print({k: v for k, v in snapshot.values.items() if k in ("name", "birthday")})
