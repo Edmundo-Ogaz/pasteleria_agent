@@ -11,28 +11,16 @@ from typing import Annotated
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 
-from typing import List, Dict
-
 from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
-
-class ToolCall(TypedDict):
-    name: str
-    args: Dict[str, str]
     
-class Model(TypedDict):
-    content: str
-    tool_calls: List[ToolCall]
-    
-class State(TypedDict):
-    user_input: str
-    model: Model
-    response: str
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
 
 # Función para hablar sobre la pastelería
-def info_pasteleria(state: State):
+def info_pasteleria(state: AgentState):
     """function to get info about the bakery for example: history, address, phone"""
     print("*"*8,"info_pasteleria", "*"*8)
     prompt = """
@@ -58,76 +46,71 @@ def info_pasteleria(state: State):
 #     state['response'] = 'info_productos'
 #     return state
 
-def get_products_by_ingredient(state: State) -> str:
+def get_products_by_ingredient(ingredient: str) -> str:
     """function to get the products by a ingredient"""
-    print("*"*8,"get_products_by_ingredient", "*"*8)
-    # return f"los productos que tienen {ingredient} son: torta Afrinana y torta Delicias"
-    state['response'] = 'get_products_by_ingredient'
-    return state
+    return f"los productos que tienen {ingredient} son: torta Afrinana y torta Delicias"
 
 # Función para clasificar la pregunta del usuario
-def clasification(state: State):
-    print("*"*8,"clasification", "*"*8)
-    print("-"*8, state, "-"*8)
-    if state['model'].content:
-        return ['info_pasteleria']
-    elif state['model'].tool_calls:
-        return state['model'].tool_calls[0]['name']
-    else:
-        return ['info_pasteleria']
+# def clasificar_pregunta(state: AgentState):
+#     print(state, "-"*8)
+#     if any(word in state['user_input'].lower() for word in ["historia", "ubicación", "especialidad", "quiénes son"]):
+#         return ["pasteleria"]
+#     else:
+#         return ["productos"]
 
 tools = [info_pasteleria, get_products_by_ingredient]
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
 llm_with_tools = llm.bind_tools(tools)
 
-def init(state: State):
+def init(state: AgentState):
     print("*"*8,"init", "*"*8)
     print(state)
-    message = llm_with_tools.invoke([{"role": "user", "content": state["user_input"]}])
+    message = llm_with_tools.invoke(state["messages"])
     print("*"*8,message, "*"*8)
-    state['model'] = message
-    return state
+    if len(message.tool_calls) > 1:
+        del message.tool_calls[1]
+    return {"messages": [message]}
 
 # Construcción del gráfico
-workflow = StateGraph(State)
+workflow = StateGraph(AgentState)
 workflow.add_node("init", init)
-# workflow.add_node("tools", ToolNode(tools=tools))
-workflow.add_node("info_pasteleria", info_pasteleria)
-workflow.add_node("get_products_by_ingredient", get_products_by_ingredient)
+workflow.add_node("tools", ToolNode(tools=tools))
+# workflow.add_node("pasteleria", info_pasteleria)
+# workflow.add_node("productos", info_productos)
 workflow.set_entry_point("init")
-# workflow.add_edge("tools", "init")
+workflow.add_edge("tools", "init")
 
 workflow.add_conditional_edges(
     "init",
-    clasification,
+    tools_condition,
 )
 
-workflow.add_edge("info_pasteleria", END)
-workflow.add_edge("get_products_by_ingredient", END)
+# workflow.add_edge("pasteleria", END)
+# workflow.add_edge("productos", END)
 
 # Compilar el gráfico
-# memory = MemorySaver()
-# graph = workflow.compile(checkpointer=memory)
-graph = workflow.compile()
+memory = MemorySaver()
+graph = workflow.compile(checkpointer=memory)
+# graph = workflow.compile()
 
 # Endpoint para interactuar con el agente
 @app.post("/consulta")
 def ejecutar_agente(pregunta: str):
-    estado_inicial = State(user_input=pregunta)
-    estado_final = graph.invoke(estado_inicial)
+    # estado_inicial = AgentState(user_input=pregunta)
+    # estado_final = graph.invoke(estado_inicial)
     # estado_final = graph.invoke({"messages": [{"role": "user", "content": pregunta}]})
-    return {"respuesta": estado_final}
-    # events = graph.stream(
-    #     {"messages": [{"role": "user", "content": pregunta}]},
-    #     {"configurable": {"thread_id": "1"}},
-    #     stream_mode="values",
-    # )
-    # print("+"*8, "events", "+"*8)
-    # responses = []
-    # for event in events:
-    #     event["messages"][-1].pretty_print()
-    #     responses.append(event["messages"][-1].content)
+    events = graph.stream(
+        {"messages": [{"role": "user", "content": pregunta}]},
+        {"configurable": {"thread_id": "1"}},
+        stream_mode="values",
+    )
+    print("+"*8, "events", "+"*8)
+    responses = []
+    for event in events:
+        event["messages"][-1].pretty_print()
+        responses.append(event["messages"][-1].content)
 
-    # print("*"*8,"events","*"*8)
-    # print(list(events))
-    # return {"respuesta": responses[-1]}
+    print("*"*8,"events","*"*8)
+    print(list(events))
+    # return {"respuesta": "estado_final['response']"}
+    return {"respuesta": responses[-1]}
