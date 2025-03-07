@@ -3,16 +3,30 @@ import langgraph
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
 from langchain.schema import SystemMessage
+from typing_extensions import TypedDict
 
 app = FastAPI()
 
 # Definir el estado del agente
-class AgentState:
-    def __init__(self, user_input):
-        self.user_input = user_input
-        self.response = None
+# class AgentState:
+#     def __init__(self, user_input):
+#         self.user_input = user_input
+#         self.response = None
 
-llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
+#     def to_dict(self):
+#         return {
+#             "user_input": self.user_input,
+#             "response": self.response,
+#         }
+    
+class AgentState(TypedDict):
+    user_input: str
+    response: None
+
+# llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
+
+def init(state: AgentState):
+    return {}
 
 # Función para hablar sobre la pastelería
 def info_pasteleria(state: AgentState):
@@ -20,8 +34,9 @@ def info_pasteleria(state: AgentState):
     Eres un asistente de una pastelería llamada "Dulces Delicias".
     Habla sobre la historia de la pastelería, su ubicación y sus especialidades.
     """
-    response = llm([SystemMessage(content=prompt)])
-    state.response = response.content
+    # response = llm([SystemMessage(content=prompt)])
+    # state.response = response.content
+    state['response'] = 'info_pasteleria'
     return state
 
 # Función para responder sobre productos
@@ -29,26 +44,34 @@ def info_productos(state: AgentState):
     prompt = f"""
     Eres un asistente de una pastelería llamada "Dulces Delicias".
     Responde preguntas sobre los productos como ingredientes, precios y disponibilidad.
-    Pregunta del usuario: {state.user_input}
+    Pregunta del usuario: {state['user_input']}
     """
-    response = llm([SystemMessage(content=prompt)])
-    state.response = response.content
+    # response = llm([SystemMessage(content=prompt)])
+    # state.response = response.content
+    state['response'] = 'info_productos'
     return state
 
 # Función para clasificar la pregunta del usuario
 def clasificar_pregunta(state: AgentState):
-    if any(word in state.user_input.lower() for word in ["historia", "ubicación", "especialidad", "quiénes son"]):
-        return "pasteleria"
+    print(state, "-"*8)
+    if any(word in state['user_input'].lower() for word in ["historia", "ubicación", "especialidad", "quiénes son"]):
+        return ["pasteleria"]
     else:
-        return "productos"
+        return ["productos"]
 
 # Construcción del gráfico
 workflow = StateGraph(AgentState)
-workflow.add_node("clasificar", clasificar_pregunta)
+workflow.add_node("init", init)
 workflow.add_node("pasteleria", info_pasteleria)
 workflow.add_node("productos", info_productos)
+workflow.set_entry_point("init")
 
-workflow.set_entry_point(clasificar_pregunta)
+workflow.add_conditional_edges(
+    "init",
+    clasificar_pregunta,
+    # ["pasteleria", "productos"],
+)
+
 workflow.add_edge("pasteleria", END)
 workflow.add_edge("productos", END)
 
@@ -60,4 +83,5 @@ graph = workflow.compile()
 def ejecutar_agente(pregunta: str):
     estado_inicial = AgentState(user_input=pregunta)
     estado_final = graph.invoke(estado_inicial)
-    return {"respuesta": estado_final.response}
+    # estado_final = graph.invoke({ "user_input": pregunta })
+    return {"respuesta": estado_final['response']}
