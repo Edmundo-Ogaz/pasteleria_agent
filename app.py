@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 
 from agent.structure import graph
-from utils.State import State
+from agent.utils.State import State
 
 load_dotenv()
 

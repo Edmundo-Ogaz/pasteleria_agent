@@ -2,9 +2,13 @@ import requests
 import json
 import time
 
+with open("./agent/resources/products.json", "r", encoding="utf-8") as archivo:
+    products = json.load(archivo)
+
 # Función para hablar sobre la pastelería
 def get_products(question: str) -> str:
     """function to get product from the bakery"""
+    # f"""Obtiene información sobre productos específicos del catálogo. Úsalo cuando el usuario mencione un nombre de producto como {products}."""
     print("*"*8,"get_products", "*"*8)
     # prompt = """
     # Eres un asistente de una pastelería llamada "Dulces Delicias".

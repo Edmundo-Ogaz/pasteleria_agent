@@ -1,4 +1,4 @@
-from utils.State import State
+from agent.utils.State import State
 from langchain_groq import ChatGroq
 
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)

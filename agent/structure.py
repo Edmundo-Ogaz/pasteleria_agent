@@ -1,17 +1,18 @@
 from langgraph.graph import StateGraph, END
 
-from utils.State import State
-from utils.BasicToolNode import BasicToolNode
-from utils.route_tools import route_tools
+from agent.utils.State import State
+from agent.utils.BasicToolNode import BasicToolNode
+from agent.utils.route_tools import route_tools
 
 from agent.nodes.init import init
 from agent.nodes.end import end
 
-from tools.info_pasteleria import info_pasteleria
-from tools.get_products import get_products
-from tools.get_products_by_ingredient import get_products_by_ingredient
+from agent.tools.info_pasteleria import info_pasteleria
+from agent.tools.get_products import get_products
+from agent.tools.get_product import get_product
+from agent.tools.get_products_by_ingredient import get_products_by_ingredient
 
-tools = [info_pasteleria, get_products, get_products_by_ingredient]
+tools = [info_pasteleria, get_products, get_product, get_products_by_ingredient]
 
 workflow = StateGraph(State)
 workflow.add_node("init", init)
