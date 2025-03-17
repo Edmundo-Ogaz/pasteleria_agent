@@ -11,6 +11,8 @@ class BasicToolNode:
         self.tools_by_name = {tool.__name__: tool for tool in tools}
 
     def __call__(self, inputs: dict):
+        user_input = inputs.get("user_input", "")
+        print("user_input", user_input)
         if messages := inputs.get("messages", []):
             message = messages[-1]
         else:
@@ -29,13 +31,13 @@ class BasicToolNode:
                     raise ValueError("Error: El string extraído no es un JSON válido.")
             else:
                 raise ValueError("No se encontró un JSON válido en el string.")
+            
             tool_calls = [{'name': function_name, 'args': data, 'id': int(datetime.datetime.now().timestamp())}]
-        
+ 
         outputs = []
-        print(tool_calls)
         for tool_call in tool_calls:
             tool_result = self.tools_by_name[tool_call["name"]](
-                tool_call["args"]
+                tool_call["args"] if tool_call["name"] == 'get_products_by_ingredient' else {'question': user_input}
             )
             outputs.append(
                 ToolMessage(
