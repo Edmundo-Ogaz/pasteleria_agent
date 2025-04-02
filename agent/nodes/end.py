@@ -1,5 +1,6 @@
 from agent.utils.State import State
 from langchain_groq import ChatGroq
+from langchain_core.messages import SystemMessage
 
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
 
@@ -27,7 +28,10 @@ def end(state: State):
         {"role": "user", "content": state["user_input"]},
     ]
     print(messages)
-    message = llm.invoke(messages)
-    print("*"*8,message, "*"*8)
-    # state['response'] = message
-    return {"messages": [message]}
+    try:
+        message = llm.invoke(messages)
+        print("*"*8,message, "*"*8)
+        # state['response'] = message
+        return {"messages": [message]}
+    except Exception:
+        return {"messages": [SystemMessage(content="No se pudo ejecutar la operación")]}

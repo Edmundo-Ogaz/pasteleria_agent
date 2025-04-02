@@ -13,9 +13,11 @@ from agent.tools.get_product import get_product
 from agent.tools.get_cocktail import get_cocktail
 from agent.tools.get_kutchen import get_kutchen
 from agent.tools.get_dessert import get_dessert
-from agent.tools.get_products_by_ingredient import get_products_by_ingredient
+from agent.tools.get_products_by_ingredients import get_products_by_ingredients
+from agent.tools.get_cakes_by_ingredients import get_cakes_by_ingredients
+from agent.tools.get_desserts_by_ingredients import get_desserts_by_ingredients
 
-tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredient]
+tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredients, get_cakes_by_ingredients, get_desserts_by_ingredients]
 
 workflow = StateGraph(State)
 workflow.add_node("init", init)
