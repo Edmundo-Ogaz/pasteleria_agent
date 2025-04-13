@@ -10,6 +10,7 @@ def get_product(question: str) -> str:
     """function to get product from the bakery"""
     # f"""Obtiene información sobre un producto específicos del catálogo. Úsalo cuando el usuario mencione un nombre de producto como {products}."""
     print("*"*8,"get_product", "*"*8)
+    print(question)
     # prompt = """
     # Eres un asistente de una pastelería llamada "Dulces Delicias".
     # Habla sobre la historia de la pastelería, su ubicación y sus especialidades.

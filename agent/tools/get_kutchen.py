@@ -10,6 +10,7 @@ def get_kutchen(question: str) -> str:
     """function to get product of kutchen from the bakery"""
     # f"""Obtiene información sobre productos específicos del catálogo. Úsalo cuando el usuario mencione un nombre de producto como {products}."""
     print("*"*8,"get_kutchen", "*"*8)
+    print(question)
     # prompt = """
     # Eres un asistente de una pastelería llamada "Dulces Delicias".
     # Habla sobre la historia de la pastelería, su ubicación y sus especialidades.

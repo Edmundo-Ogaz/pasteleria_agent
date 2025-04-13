@@ -6,6 +6,7 @@ import time
 def info_pasteleria(question: str) -> str:
     """function to get info about the bakery for example: history, address, phone"""
     print("*"*8,"info_pasteleria", "*"*8)
+    print(question)
     # prompt = """
     # Eres un asistente de una pastelería llamada "Dulces Delicias".
     # Habla sobre la historia de la pastelería, su ubicación y sus especialidades.

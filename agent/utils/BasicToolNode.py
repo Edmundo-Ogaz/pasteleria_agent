@@ -12,8 +12,8 @@ class BasicToolNode:
 
     def __call__(self, inputs: dict):
         try:
-            user_input = inputs.get("user_input", "")
-            print("user_input", user_input)
+            print("*"*8,"tool","*"*8)
+            print(inputs)
             if messages := inputs.get("messages", []):
                 message = messages[-1]
             else:
@@ -37,11 +37,11 @@ class BasicToolNode:
             else:
                 raise ValueError("No function call")
  
-            function_args = ['get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients']
+            function_args = ['info_pasteleria','get_products','get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients']
             outputs = []
             for tool_call in tool_calls:
                 tool_result = self.tools_by_name[tool_call["name"]](
-                    tool_call["args"] if tool_call["name"] in function_args else {'question': user_input}
+                    tool_call["args"] if tool_call["name"] in function_args else {'question': inputs.get("user_input")}
                     # content='{"type": "function", "name": "get_products_by_ingredients", "parameters": {"ingredients": {"type": "array", "items": ["nueces"]}}}
                     # tool_calls=[{'name': 'get_products_by_ingredients', 'args': {'ingredients': ['nueces']}, 'id': 'call_78w5', 'type': 'tool_call'}]
                 )

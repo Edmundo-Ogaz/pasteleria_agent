@@ -11,7 +11,7 @@ def get_cakes_by_ingredients(ingredients: list) -> str:
     # """function to get the products by a ingredient"""
     """Obtiene las tortas que contienen estos ingredientes."""
     print("*"*8,"get_cakes_by_ingredients", "*"*8)
-    print("-"*8, ingredients, "-"*8)
+    print(ingredients)
 
     query = """
     query SearchCakesByIngredient($ingredients: [String!]!) {
