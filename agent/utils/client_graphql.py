@@ -1,6 +1,7 @@
 import requests
+import os
 
-def graphql_client_basic(query, variables=None, url="http://localhost:5000/graphql"):
+def graphql_client_basic(query, variables=None, url=os.environ.get('PASTELERIA_GRAPHQL')):
     """
     Cliente GraphQL simple usando requests
     
