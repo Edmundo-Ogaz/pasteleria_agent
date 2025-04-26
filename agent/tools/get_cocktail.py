@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import os
 
 with open("./agent/resources/products.json", "r", encoding="utf-8") as archivo:
     products = json.load(archivo)
@@ -18,7 +19,7 @@ def get_cocktail(question: str) -> str:
     # response = llm([SystemMessage(content=prompt)])
     # state.response = response.content
     # state['response'] = 'info_pasteleria'
-    host = "http://localhost:5001"
+    host = os.environ.get('PASTELERIA_RAG')
     url = f"{host}/ask-model"
     headers = {
         "Content-Type": "application/json",

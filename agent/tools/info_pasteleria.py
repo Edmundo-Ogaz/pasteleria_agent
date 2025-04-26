@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import os
 
 # Función para hablar sobre la pastelería
 def info_pasteleria(question: str) -> str:
@@ -14,7 +15,7 @@ def info_pasteleria(question: str) -> str:
     # response = llm([SystemMessage(content=prompt)])
     # state.response = response.content
     # state['response'] = 'info_pasteleria'
-    host = "http://localhost:5001"
+    host = os.environ.get('PASTELERIA_RAG')
     url = f"{host}/ask-model"
     headers = {
         "Content-Type": "application/json",

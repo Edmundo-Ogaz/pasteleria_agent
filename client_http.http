@@ -1,0 +1,10 @@
+@host = https://df2a417e-5393-4ef5-b05c-e32c4dddcc0a-00-3frxygpj3qr35.picard.replit.dev
+@host = https://pasteleriaagent-production.up.railway.app
+@host = http://localhost:8080
+###
+curl {{host}}/health
+
+###
+@query = 'qué postres tienen manjar y chocolate'
+curl -X GET {{host}}/agent?query={{query}} \
+    -H 'sessionId: 1'
