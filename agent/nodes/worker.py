@@ -10,11 +10,13 @@ from agent.tools.get_dessert import get_dessert
 from agent.tools.get_products_by_ingredients import get_products_by_ingredients
 from agent.tools.get_cakes_by_ingredients import get_cakes_by_ingredients
 from agent.tools.get_desserts_by_ingredients import get_desserts_by_ingredients
+from agent.tools.get_cocktails_by_ingredients import get_cocktails_by_ingredients
+from agent.tools.get_kutchens_by_ingredients import get_kutchens_by_ingredients
 from agent.utils.WorkerState import WorkerState
 
 from agent.utils.executeTool import execute as execute_tool
 
-tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredients, get_cakes_by_ingredients, get_desserts_by_ingredients]
+tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredients, get_cakes_by_ingredients, get_desserts_by_ingredients, get_cocktails_by_ingredients, get_kutchens_by_ingredients]
 llm = ChatGroq( model="llama-3.3-70b-versatile", temperature=0.0, max_retries=2)
 llm_with_tools = llm.bind_tools(tools)
 
@@ -54,6 +56,8 @@ Postre: Si el usuario pregunta específicamente por un postre, usa la función g
 Productos por ingrediente: Si el usuario pregunta por productos elaborados con un ingrediente específico, usa la función get_products_by_ingredients(ingredients: list).
 Tortas por ingrediente: Si el usuario pregunta por tortas elaboradas con un ingrediente específico, usa la función get_cakes_by_ingredients(ingredients: list).
 Postres por ingrediente: Si el usuario pregunta por postres elaborados con un ingrediente específico, usa la función get_desserts_by_ingredients(ingredients: list).
+Cocktails por ingrediente: Si el usuario pregunta por cocktails elaborados con un ingrediente específico, usa la función get_cocktails_by_ingredients(ingredients: list).
+Kutchens por ingrediente: Si el usuario pregunta por kutchens elaborados con un ingrediente específico, usa la función get_kutchens_by_ingredients(ingredients: list).
 Productos especiales: Si el usuario pregunta por productos sin azúcar, sin gluten, veganos, vegetarianos, sin lactosa, sin huevos u otra variante especial, responde directamente: "Para productos especiales, te recomendamos comunicarte directamente con la pastelería al número 55 2 268988 para verificar disponibilidad y opciones.".
 Respuestas simples relacionadas: Si el mensaje es simple y directamente relacionado con la pastelería (como 'Hola buenos días', '¿Qué tortas tienen hoy?' o 'Gracias por la ayuda'), responde directamente de manera apropiada.
 Manejo de mensajes no relacionados u ofensivos:

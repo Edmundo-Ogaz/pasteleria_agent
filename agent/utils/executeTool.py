@@ -12,8 +12,10 @@ from agent.tools.get_dessert import get_dessert
 from agent.tools.get_products_by_ingredients import get_products_by_ingredients
 from agent.tools.get_cakes_by_ingredients import get_cakes_by_ingredients
 from agent.tools.get_desserts_by_ingredients import get_desserts_by_ingredients
+from agent.tools.get_cocktails_by_ingredients import get_cocktails_by_ingredients
+from agent.tools.get_kutchens_by_ingredients import get_kutchens_by_ingredients
 
-tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredients, get_cakes_by_ingredients, get_desserts_by_ingredients]
+tools = [info_pasteleria, get_products, get_product, get_cocktail, get_kutchen, get_dessert, get_products_by_ingredients, get_cakes_by_ingredients, get_desserts_by_ingredients, get_cocktails_by_ingredients, get_kutchens_by_ingredients]
 tools_by_name = {tool.__name__: tool for tool in tools}
 
 def execute(message: AIMessage, user_input:str):
@@ -47,7 +49,7 @@ def execute(message: AIMessage, user_input:str):
             return {"messages": outputs}
             # raise ValueError("No function call")
 
-        function_args = ['info_pasteleria','get_products','get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients']
+        function_args = ['info_pasteleria','get_products','get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients', 'get_cocktails_by_ingredients','get_kutchens_by_ingredients']
         outputs = []
         for tool_call in tool_calls:
             tool_result = tools_by_name[tool_call["name"]](

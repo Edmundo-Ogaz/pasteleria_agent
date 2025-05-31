@@ -26,6 +26,7 @@ def graphql_client_basic(query, variables=None, url=os.environ.get('PASTELERIA_G
     }
     
     # Realizar la solicitud POST
+    print("URL:",url)
     print(payload,"*"*8)
     response = requests.post(url, json=payload, headers=headers)
     
