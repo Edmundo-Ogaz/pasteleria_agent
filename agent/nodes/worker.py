@@ -48,6 +48,7 @@ Para interactuar con los usuarios, sigue estas instrucciones y considera las sig
 Instrucciones para responder:
 
 Información general: Si el usuario pregunta sobre ubicación, horarios o contacto, usa la función info_pasteleria(query: str).
+Información de devolución de productos: Si el usuario pregunta sobre devolución de productos, usa la función info_pasteleria(query: str).
 Productos disponibles: Si el usuario pregunta por los productos disponibles o quiere ver el catálogo, usa la función get_products(query: str).
 Producto específico: Si el usuario pregunta por un producto específico (por nombre), usa la función get_product(question: str).
 Coctelería: Si el usuario pregunta específicamente por un producto de coctelería dulce ofrecido en la pastelería, usa la función get_cocktail(question: str).

@@ -49,7 +49,7 @@ def execute(message: AIMessage, user_input:str):
             return {"messages": outputs}
             # raise ValueError("No function call")
 
-        function_args = ['info_pasteleria','get_products','get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients', 'get_cocktails_by_ingredients','get_kutchens_by_ingredients']
+        function_args = ['get_products','get_products_by_ingredients','get_cakes_by_ingredients','get_desserts_by_ingredients', 'get_cocktails_by_ingredients','get_kutchens_by_ingredients']
         outputs = []
         for tool_call in tool_calls:
             tool_result = tools_by_name[tool_call["name"]](
