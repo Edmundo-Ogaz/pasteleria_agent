@@ -27,16 +27,25 @@ def get_products(question: str) -> str:
     }
     query = question['question']
     data = {"query": query}
-
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        return response.json()['respuesta']
-    except requests.exceptions.RequestException as e:
-        print(f"Error during request: {e}")
-        return None
-    except json.JSONDecodeError:
-        print("Response is not valid JSON")
-        return response.text #return the text in case of decoding error.
+    retries=3 
+    delay=2
+    for attempt in range(retries):
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            return response.json()['respuesta']
+        except requests.exceptions.HTTPError as e:
+                if response.status_code in [502, 503] and attempt < retries - 1:
+                    time.sleep(delay)
+                    print(f"retry")
+                    continue
+                print(f"Fallo permanente: {e}")
+                raise
+        except requests.exceptions.RequestException as e:
+            print(f"Error during request: {e}")
+            return None
+        except json.JSONDecodeError:
+            print("Response is not valid JSON")
+            return response.text #return the text in case of decoding error.
 
     return ''

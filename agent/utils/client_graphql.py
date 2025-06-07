@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 
 def graphql_client_basic(query, variables=None, url=os.environ.get('PASTELERIA_GRAPHQL')):
     """
@@ -28,21 +29,38 @@ def graphql_client_basic(query, variables=None, url=os.environ.get('PASTELERIA_G
     # Realizar la solicitud POST
     print("URL:",url)
     print(payload,"*"*8)
-    response = requests.post(url, json=payload, headers=headers)
-    
-    # Verificar si la respuesta fue exitosa
-    if response.status_code == 200:
-        result = response.json()
-        
-        # Verificar si hay errores en la respuesta GraphQL
-        if "errors" in result:
-            print(f"Error GraphQL: {result['errors']}")
-        
-        return result
-    else:
-        print(f"Error HTTP: {response.status_code}")
-        print(response.text)
-        return None
+    retries=3 
+    delay=2
+    for attempt in range(retries):
+        response = None  # Para evitar errores si falla antes de asignar
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            
+            # Verificar si la respuesta fue exitosa
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Verificar si hay errores en la respuesta GraphQL
+                if "errors" in result:
+                    print(f"Error GraphQL: {result['errors']}")
+                
+                return result
+            elif response.status_code in [502, 503] and attempt < retries - 1:
+                print(f"Intento {attempt + 1} fallido con {response.status_code}. Reintentando en {delay} segundos...")
+                time.sleep(delay)
+                continue
+            else:
+                print(f"Error HTTP: {response.status_code}")
+                print(response.text)
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Excepción en la solicitud: {e}")
+            if attempt < retries - 1:
+                print(f"Reintentando en {delay} segundos...")
+                time.sleep(delay)
+            else:
+                raise
+    return None
 
 def buscar_productos_por_ingrediente(nombre_ingrediente):
     """
